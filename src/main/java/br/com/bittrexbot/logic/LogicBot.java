@@ -62,10 +62,8 @@ public class LogicBot {
 		//Get the purchases made and analyze possible sales
 		List<Shopping> listShopping = shoppingRepository.findAll();
 		listShopping.forEach(shopping -> {
-			
-			//Analyzes pending orders
-			OpenOrders openOrders = client.getOpenOrders(shopping.getCoin());
-			if(openOrders.result != null && openOrders.result.size() > 0) {
+			OpenOrders openOrders = !Global.SIMULATION ? client.getOpenOrders(shopping.getCoin()) : null;
+			if(openOrders != null && openOrders.result != null && openOrders.result.size() > 0) {
 				if(openOrders.result.get(0).OrderType.equals("LIMIT_BUY")) {
 					System.out.println("<><><><><> Pending Buy Order for: "+shopping.getCoin());
 					//Cancel Order
