@@ -29,6 +29,9 @@ public class Global {
 	public static int LOCAL_HISTORY_LOGIC_MINUTES = 10;
 	public static int LOCAL_HISTORY_LOGIC_PERCENTUAL = 5;
 	
+	//Order Book Logic
+	public static int ORDER_BOOK_LOGIC_MULTIPLE = 2;
+	
 	public static Boolean stopProcess(){
 		SimpleDateFormat dateFormat = new SimpleDateFormat("HH");
 		if(Integer.parseInt(dateFormat.format(new Date())) >= STOP_HOUR) return true;
