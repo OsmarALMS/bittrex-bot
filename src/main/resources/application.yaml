@@ -1,0 +1,11 @@
+server:
+    port:
+      8080
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  datasource:
+      url: jdbc:mysql://0.0.0.0:3306/bittrex-bot
+      username: bittrex-bot
+      password: bittrex-bot
