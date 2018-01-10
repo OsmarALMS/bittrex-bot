@@ -1,0 +1,15 @@
+version: '2'
+services:
+  mysql:
+    image: mysql
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=bittrex-bot
+      - MYSQL_USER=bittrex-bot
+      - MYSQL_PASSWORD=bittrex-bot
+      - MYSQL_DATABASE=bittrex-bot
+    ports:
+      - "3306:3306"
+volumes:
+    db_data:
