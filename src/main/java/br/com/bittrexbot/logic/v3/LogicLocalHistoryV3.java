@@ -1,7 +1,8 @@
-package br.com.bittrexbot.logic;
+package br.com.bittrexbot.logic.v3;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -13,8 +14,9 @@ import br.com.bittrexbot.model.LocalHistory;
 import br.com.bittrexbot.model.Shopping;
 import br.com.bittrexbot.repository.LocalHistoryRepository;
 import br.com.bittrexbot.repository.ShoppingRepository;
-import br.com.bittrexbot.rest.client.BittrexClient;
-import br.com.bittrexbot.rest.model.MarketSummary;
+import br.com.bittrexbot.rest.client.BittrexClientV3;
+import br.com.bittrexbot.rest.model.v3.MarketSummary;
+import br.com.bittrexbot.rest.model.v3.MarketTicker;
 import br.com.bittrexbot.utils.Global;
 
 /**
@@ -22,7 +24,7 @@ import br.com.bittrexbot.utils.Global;
  * This logic is based on the currency appreciation percentage in a x-minute interval
  */
 @Component
-public class LogicLocalHistory {
+public class LogicLocalHistoryV3 {
 
 	private List<String> disregardCoins = new ArrayList<String>();
 	
@@ -32,7 +34,7 @@ public class LogicLocalHistory {
 	private LocalHistoryRepository localHistoryRepository;
 	
 	@Autowired
-	private BittrexClient client;
+	private BittrexClientV3 client;
 	
 	/**
 	 * @param quantityOfCoins Number of coins to search
@@ -53,26 +55,29 @@ public class LogicLocalHistory {
 		
 		System.out.println("<LogicLocalHistory> -- Saving data / Checking date: "+dateFindString);
 		
-		MarketSummary saveSummaries = client.getMarketSummaries();
-		saveSummaries.result.stream()
-			.filter(result -> Double.parseDouble(result.BaseVolume) >= Global.MINIMUN_BASE_VOLUME_TO_BUY)
-			.filter(result -> result.MarketName.startsWith("BTC-") && !disregardCoins.contains(result.MarketName))
-			.filter(result -> testCoins != null ? (testCoins.stream().filter(s -> s.testExistentMarket(result.MarketName)).count() > 0) : true)
+		MarketSummary[] saveSummaries = client.getMarketSummaries();
+		Arrays.asList(saveSummaries).stream()
+			.filter(result -> result.getVolume() != null && !result.getVolume().equals(""))
+			.filter(result -> result.getVolume() >= Global.MINIMUN_BASE_VOLUME_TO_BUY)
+			.filter(result -> result.getSymbol().contains("-BTC") && !disregardCoins.contains(result.getSymbol()))
+			.filter(result -> testCoins != null ? result.getSymbol().equals("testCoins") : true)
 			.forEach(result -> {
 			
+			MarketTicker ticker = client.getMarketTicker(result.getSymbol());	
+				
 			//Saves the current value of all currencies
-			LocalHistory localHistorySave = new LocalHistory(result.MarketName, Double.parseDouble(result.Last));
+			LocalHistory localHistorySave = new LocalHistory(result.getSymbol(), ticker.getAskRate());
 			localHistoryRepository.save(localHistorySave);
 			
 			if(eligibleCoins.size() < quantityOfCoins) {
 				//Check if the local base already has enough data for the parameterized time
-				LocalHistory localHistory = localHistoryRepository.findByDate(result.MarketName, dateFindString);
+				LocalHistory localHistory = localHistoryRepository.findByDate(result.getSymbol(), dateFindString);
 				if(localHistory != null){
 					//Check percent
-					Double percentValue = (Double.parseDouble(result.Last) * 100) / localHistory.getLastValue();
+					Double percentValue = (ticker.getAskRate() * 100) / localHistory.getLastValue();
 					if(percentValue >= 100+Global.LOCAL_HISTORY_LOGIC_PERCENTUAL){
-						System.out.println("<LogicLocalHistory> -- Currency "+result.MarketName+" grew "+(percentValue-100)+"%");
-						eligibleCoins.add(client.getMarketSummary(result.MarketName));
+						System.out.println("<LogicLocalHistory> -- Currency "+result.getSymbol()+" grew "+(percentValue-100)+"%");
+						eligibleCoins.add(client.getMarketSummary(result.getSymbol()));
 					}
 				}
 			}

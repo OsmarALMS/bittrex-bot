@@ -1,4 +1,4 @@
-package br.com.bittrexbot.rest.model;
+package br.com.bittrexbot.rest.model.v1;
 
 public class BuySellLimit {
 

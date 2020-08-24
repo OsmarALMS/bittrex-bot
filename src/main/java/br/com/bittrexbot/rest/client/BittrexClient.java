@@ -9,12 +9,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import br.com.bittrexbot.rest.model.BuySellLimit;
-import br.com.bittrexbot.rest.model.CancelOrder;
-import br.com.bittrexbot.rest.model.MarketHistory;
-import br.com.bittrexbot.rest.model.MarketSummary;
-import br.com.bittrexbot.rest.model.OpenOrders;
-import br.com.bittrexbot.rest.model.OrderBook;
+import br.com.bittrexbot.rest.model.v1.BuySellLimit;
+import br.com.bittrexbot.rest.model.v1.CancelOrder;
+import br.com.bittrexbot.rest.model.v1.MarketHistory;
+import br.com.bittrexbot.rest.model.v1.MarketSummary;
+import br.com.bittrexbot.rest.model.v1.OpenOrders;
+import br.com.bittrexbot.rest.model.v1.OrderBook;
 import br.com.bittrexbot.utils.Global;
 
 @Component

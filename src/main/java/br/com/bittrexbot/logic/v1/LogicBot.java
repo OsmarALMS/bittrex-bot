@@ -1,4 +1,4 @@
-package br.com.bittrexbot.logic;
+package br.com.bittrexbot.logic.v1;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,9 +14,9 @@ import br.com.bittrexbot.repository.LocalHistoryRepository;
 import br.com.bittrexbot.repository.ResultRepository;
 import br.com.bittrexbot.repository.ShoppingRepository;
 import br.com.bittrexbot.rest.client.BittrexClient;
-import br.com.bittrexbot.rest.model.CancelOrder;
-import br.com.bittrexbot.rest.model.MarketSummary;
-import br.com.bittrexbot.rest.model.OpenOrders;
+import br.com.bittrexbot.rest.model.v1.CancelOrder;
+import br.com.bittrexbot.rest.model.v1.MarketSummary;
+import br.com.bittrexbot.rest.model.v1.OpenOrders;
 import br.com.bittrexbot.utils.Global;
 
 /**
@@ -49,7 +49,7 @@ public class LogicBot {
 	/**
 	 * This class is scheduled to run every 60 seconds
 	 */
-	@Scheduled(cron="*/60 * * * * *")
+//	@Scheduled(cron="*/60 * * * * *")
 	public void doTheLogic(){
 		
 		if(CLEAN_DATABASE) cleanDataBase();
@@ -64,6 +64,7 @@ public class LogicBot {
 		listShopping.forEach(shopping -> {
 			
 			//Analyzes pending orders
+			//TODO it might be better not to work with pending orders
 			OpenOrders openOrders = client.getOpenOrders(shopping.getCoin());
 			if(openOrders.result != null && openOrders.result.size() > 0) {
 				if(openOrders.result.get(0).OrderType.equals("LIMIT_BUY")) {
@@ -95,7 +96,7 @@ public class LogicBot {
 							System.out.println("<><><><><> Sell Order canceled: "+shopping.getCoin()+" - Parcial quantity!");
 						}else {
 							//Remove from result
-							shoppingLogic.updateFinalResult(shopping.getSellProfit(), shopping.getQuantity(), true);
+							shoppingLogic.updateFinalResult(shopping.getSellProfit());
 							//Release for new sale
 							shopping.setSold(false);
 							shoppingRepository.save(shopping);
@@ -155,8 +156,8 @@ public class LogicBot {
 		List<Result> listResult = resultRepository.findAll();
 		if(listResult != null && listResult.size() > 0) {
 			System.out.println(" ****************************************************** ");
-			System.out.println(" *****   PROFITS OF SELLS "+listResult.get(0).getSellProfit());
-			System.out.println(" *****   LOSSES  OF SELLS "+listResult.get(0).getSellLoss());
+			System.out.println(" *****   PROFITS: "+listResult.get(0).getSellProfit() + " --> "+(listResult.get(0).getSellProfit()*Global.PERCENTUAL_PROFIT));
+			System.out.println(" *****   LOSSES : "+listResult.get(0).getSellLoss() + " --> "+(listResult.get(0).getSellLoss()*Global.PERCENTUAL_LOSE));
 			System.out.println(" ****************************************************** ");
 		}
 	}

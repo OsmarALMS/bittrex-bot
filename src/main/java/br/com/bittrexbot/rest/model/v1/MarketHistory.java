@@ -1,4 +1,4 @@
-package br.com.bittrexbot.rest.model;
+package br.com.bittrexbot.rest.model.v1;
 
 import java.util.List;
 import java.util.TimeZone;

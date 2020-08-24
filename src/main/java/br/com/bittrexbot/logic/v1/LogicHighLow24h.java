@@ -1,4 +1,4 @@
-package br.com.bittrexbot.logic;
+package br.com.bittrexbot.logic.v1;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import br.com.bittrexbot.model.Shopping;
 import br.com.bittrexbot.repository.ShoppingRepository;
 import br.com.bittrexbot.rest.client.BittrexClient;
-import br.com.bittrexbot.rest.model.MarketSummary;
+import br.com.bittrexbot.rest.model.v1.MarketSummary;
 import br.com.bittrexbot.utils.Global;
 
 /**

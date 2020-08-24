@@ -10,9 +10,10 @@ public class Shopping {
 
 	public Shopping(){}
 	
-	public Shopping(String coin, Double quantity, Double btcValue, String orderUuid){
+	public Shopping(String coin, Double quantity, Double firstBtcValue, Double btcValue, String orderUuid){
 		this.coin = coin;
 		this.quantity = quantity;
+		this.firstBtcValue = firstBtcValue;
 		this.btcValue = btcValue;
 		this.orderUuid = orderUuid;
 	}
@@ -20,19 +21,12 @@ public class Shopping {
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
-	
 	private String coin;
-	
 	private Double quantity;
-	
+	private Double firstBtcValue;
 	private Double btcValue;
-	
-	private Double sellWish;
-	
 	private String orderUuid;
-	
 	private Boolean sellProfit;
-	
 	private Boolean sold = false;
 
 	public Long getId() {
@@ -67,14 +61,6 @@ public class Shopping {
 		this.btcValue = btcValue;
 	}
 
-	public Double getSellWish() {
-		return sellWish;
-	}
-
-	public void setSellWish(Double sellWish) {
-		this.sellWish = sellWish;
-	}
-
 	public String getOrderUuid() {
 		return orderUuid;
 	}
@@ -97,6 +83,14 @@ public class Shopping {
 
 	public void setSold(Boolean sold) {
 		this.sold = sold;
+	}
+
+	public Double getFirstBtcValue() {
+		return firstBtcValue;
+	}
+
+	public void setFirstBtcValue(Double firstBtcValue) {
+		this.firstBtcValue = firstBtcValue;
 	}
 	
 	

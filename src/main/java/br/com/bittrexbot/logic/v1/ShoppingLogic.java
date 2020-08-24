@@ -1,4 +1,4 @@
-package br.com.bittrexbot.logic;
+package br.com.bittrexbot.logic.v1;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -7,8 +7,8 @@ import br.com.bittrexbot.model.Shopping;
 import br.com.bittrexbot.repository.ResultRepository;
 import br.com.bittrexbot.repository.ShoppingRepository;
 import br.com.bittrexbot.rest.client.BittrexClient;
-import br.com.bittrexbot.rest.model.BuySellLimit;
-import br.com.bittrexbot.rest.model.MarketSummary;
+import br.com.bittrexbot.rest.model.v1.BuySellLimit;
+import br.com.bittrexbot.rest.model.v1.MarketSummary;
 import br.com.bittrexbot.utils.Global;
 
 /**
@@ -41,7 +41,9 @@ public class ShoppingLogic {
 		if(buyConfirmed.success){
 			System.out.println("<ShoppingLogic> -- Buy Order confirmed");
 			shoppingRepository.save(
-					new Shopping(marketSummaryCoin.result.get(0).MarketName, quantity, Double.parseDouble(marketSummaryCoin.result.get(0).Bid), buyConfirmed.result.uuid));
+					new Shopping(marketSummaryCoin.result.get(0).MarketName, quantity,
+							Double.parseDouble(marketSummaryCoin.result.get(0).Bid),
+							Double.parseDouble(marketSummaryCoin.result.get(0).Bid), buyConfirmed.result.uuid));
 		}else{
 			throw new RuntimeException("<ShoppingLogic> -- Problems with Buy Order: "+buyConfirmed.message);
 		}
@@ -62,22 +64,16 @@ public class ShoppingLogic {
 			System.out.println("<ShoppingLogic> Sell coin: "+shopping.getCoin() +" --- STOP PROCESS");
 			sellCoin(false, shopping, marketSummary);
 		}else if(valueForSell >= calcProfitValue(shopping.getQuantity(), shopping.getBtcValue())){
-			//Sell ​​at a profit <> Try to sell on the continuous growth
-			if(shopping.getSellWish() == null){
-				shopping.setSellWish(valueForSell);
+			if(Global.MOVE_STOP) {
+				//Update for a new value (Move Stop) - Only Sell if the price get the PERCENTUAL_LOSE
+				shopping.setBtcValue(Double.parseDouble(marketSummary.result.get(0).Ask));
 				shoppingRepository.save(shopping);
-				System.out.println("<ShoppingLogic> Waiting for a better profit to sell. "
-						+ "Actual value is "+valueForSell);
-			}else{
-				if(valueForSell < shopping.getSellWish()){
-					System.out.println("<ShoppingLogic> Sell coin: "+shopping.getCoin() +" whit a profit");
-					sellCoin(true, shopping, marketSummary);
-				}else{
-					shopping.setSellWish(valueForSell);
-					shoppingRepository.save(shopping);
-					System.out.println("<ShoppingLogic> Waiting for a better profit to sell. "
-							+ "Actual value is "+valueForSell);
-				}
+				System.out.println("<ShoppingLogic> Profit and Move stop. New value is "+valueForSell);
+				updateFinalResult(true);
+			}else {
+				//Sell ​​at a profit 
+				System.out.println("<ShoppingLogic> Sell coin: "+shopping.getCoin() +" whit a profit");
+				sellCoin(true, shopping, marketSummary);
 			}
 		}else if(valueForSell <= calcLoseValue(shopping.getQuantity(), shopping.getBtcValue())){
 			//Sell ​​at a loss
@@ -85,7 +81,7 @@ public class ShoppingLogic {
 			sellCoin(false, shopping, marketSummary);
 		}else{
 			System.out.println("<ShoppingLogic> Waiting for a value to sell. "
-					+ "Value buyed for "+shopping.getQuantity()*shopping.getBtcValue()+", "
+					+ "Value buyed for "+shopping.getQuantity()*shopping.getFirstBtcValue()+", "
 							+ "Actual value is "+valueForSell);
 		}
 	}
@@ -108,18 +104,18 @@ public class ShoppingLogic {
 			throw new RuntimeException("<ShoppingLogic> -- Problems with Sell Order: "+sellConfirmed.message);
 		}
 		if(!Global.stopProcess()){
-			updateFinalResult(isProfit, ((shopping.getQuantity()*shopping.getBtcValue()) - (Double.parseDouble(marketSummary.result.get(0).Ask) * shopping.getQuantity())), false);
+			updateFinalResult(isProfit);
 		}
 	}
 	
-	public void updateFinalResult(Boolean isProfit, Double quantity, Boolean reverse){
+	public void updateFinalResult(Boolean isProfit){
 		Result result = resultRepository.findOne(1L);
 		if(result == null) result = new Result(1L, 0L, 0L);
 		
 		if(isProfit){
-			result.setSellProfit(!reverse ? (result.getSellProfit()+1) : (result.getSellProfit()-1));
+			result.setSellProfit(result.getSellProfit()+1);
 		}else{
-			result.setSellLoss(!reverse ? (result.getSellLoss()+1) : (result.getSellLoss()-1));
+			result.setSellLoss(result.getSellLoss()+1);
 		}
 		resultRepository.save(result);
 	}

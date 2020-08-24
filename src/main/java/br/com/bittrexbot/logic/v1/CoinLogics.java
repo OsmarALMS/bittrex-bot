@@ -1,4 +1,4 @@
-package br.com.bittrexbot.logic;
+package br.com.bittrexbot.logic.v1;
 
 public enum CoinLogics {
 
