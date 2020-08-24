@@ -36,21 +36,17 @@ public class ShoppingLogicV3 {
 	 */
 	public void buy(MarketSummary marketSummaryCoin) {
 		MarketTicker ticker = client.getMarketTicker(marketSummaryCoin.getSymbol());
-		Double quantity = quantityForBuy(ticker.getBidRate());
-		System.out.println("<ShoppingLogic> -- Buying "+quantity+" "+marketSummaryCoin.getSymbol()+" Price: "+ticker.getBidRate());
+		Double quantity = quantityForBuy(ticker.getAskRate());
+		System.out.println("<ShoppingLogic> -- Buying "+quantity+" "+marketSummaryCoin.getSymbol()+" Price: "+ticker.getAskRate());
 		OrderResponse orderResponse = 
 				!Global.SIMULATION ? client.order(marketSummaryCoin.getSymbol(), Direction.BUY, quantity) : new OrderResponse("SIMULATION_ID");
 		 
-//		if(orderResponse.getsuccess){
-			System.out.println("<ShoppingLogic> -- Buy Order confirmed");
-			System.out.println("<ShoppingLogic> -- STATUS CHECK: "+orderResponse.getStatus());
-			shoppingRepository.save(
-					new Shopping(marketSummaryCoin.getSymbol(), quantity,
-							ticker.getBidRate(),
-							ticker.getBidRate(), orderResponse.getId()));
-//		}else{
-//			throw new RuntimeException("<ShoppingLogic> -- Problems with Buy Order: "+buyConfirmed.message);
-//		}
+		System.out.println("<ShoppingLogic> -- Buy Order confirmed");
+		shoppingRepository.save(
+				new Shopping(marketSummaryCoin.getSymbol(), quantity,
+						ticker.getBidRate(),
+						ticker.getBidRate(), orderResponse.getId()));
+
 	}
 	
 	/**
@@ -61,9 +57,9 @@ public class ShoppingLogicV3 {
 	 */
 	public void sell(MarketSummary marketSummary, Shopping shopping) {
 		MarketTicker ticker = client.getMarketTicker(marketSummary.getSymbol());
-		Double valueForSell = ticker.getAskRate() * shopping.getQuantity();
+		Double valueForSell = ticker.getBidRate() * shopping.getQuantity();
 		
-		System.out.println("<ShoppingLogic> Checking coin: "+shopping.getCoin()+" Ask: "+ticker.getAskRate()+" Buyed at: "+shopping.getBtcValue());
+		System.out.println("<ShoppingLogic> Checking coin: "+shopping.getCoin()+" Ask: "+ticker.getBidRate()+" Buyed at: "+shopping.getBtcValue());
 		
 		if(Global.stopProcess()){
 			System.out.println("<ShoppingLogic> Sell coin: "+shopping.getCoin() +" --- STOP PROCESS");
@@ -71,7 +67,7 @@ public class ShoppingLogicV3 {
 		}else if(valueForSell >= calcProfitValue(shopping.getQuantity(), shopping.getBtcValue())){
 			if(Global.MOVE_STOP) {
 				//Update for a new value (Move Stop) - Only Sell if the price get the PERCENTUAL_LOSE
-				shopping.setBtcValue(ticker.getAskRate());
+				shopping.setBtcValue(ticker.getBidRate());
 				shoppingRepository.save(shopping);
 				System.out.println("<ShoppingLogic> Profit and Move stop. New value is "+valueForSell);
 				updateFinalResult(true);
@@ -96,18 +92,14 @@ public class ShoppingLogicV3 {
 		OrderResponse orderResponse = 
 				!Global.SIMULATION ? client.order(shopping.getCoin(), Direction.SELL, shopping.getQuantity()) : new OrderResponse("SIMULATION_ID");
 				
-//		if(sellConfirmed.success){
-			System.out.println("<ShoppingLogic> -- STATUS CHECK: "+orderResponse.getStatus());
-			System.out.println("<ShoppingLogic> -- Sell Order confirmed, Currency: "+shopping.getCoin().replaceAll("BTC-", "")
-					+" Value: "+(shopping.getQuantity()*ticker.getAskRate()));
-			
-			shopping.setOrderUuid(orderResponse.getId());
-			shopping.setSellProfit(isProfit);
-			shopping.setSold(true);
-			shoppingRepository.save(shopping);
-//		}else{
-//			throw new RuntimeException("<ShoppingLogic> -- Problems with Sell Order: "+sellConfirmed.message);
-//		}
+		System.out.println("<ShoppingLogic> -- Sell Order confirmed, Currency: "+shopping.getCoin().replaceAll("BTC-", "")
+				+" Value: "+(shopping.getQuantity()*ticker.getBidRate()));
+		
+		shopping.setOrderUuid(orderResponse.getId());
+		shopping.setSellProfit(isProfit);
+		shopping.setSold(true);
+		shoppingRepository.save(shopping);
+
 		if(!Global.stopProcess()){
 			updateFinalResult(isProfit);
 		}

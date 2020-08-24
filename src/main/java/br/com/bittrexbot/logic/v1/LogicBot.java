@@ -65,8 +65,9 @@ public class LogicBot {
 			
 			//Analyzes pending orders
 			//TODO it might be better not to work with pending orders
-			OpenOrders openOrders = client.getOpenOrders(shopping.getCoin());
-			if(openOrders.result != null && openOrders.result.size() > 0) {
+			OpenOrders openOrders = !Global.SIMULATION ? client.getOpenOrders(shopping.getCoin()) : null;
+			if(openOrders != null && openOrders.result != null && openOrders.result.size() > 0) {
+
 				if(openOrders.result.get(0).OrderType.equals("LIMIT_BUY")) {
 					System.out.println("<><><><><> Pending Buy Order for: "+shopping.getCoin());
 					//Cancel Order

@@ -16,7 +16,7 @@ import br.com.bittrexbot.utils.Global;
 /**
  * @author Osmar
  * This logic is based on OrderBook, 
- * coins are selected if the first 20 purchase orders are 2 times greater than the first 20 orders sales
+ * coins are selected if the first 20 purchase orders are x times greater than the first 20 orders sales
  */
 @Component
 public class LogicOrderBook {
@@ -51,7 +51,7 @@ public class LogicOrderBook {
 					OrderBook orderbook = client.getOrderBook(result.MarketName);
 					Double quantityBuyOrders = orderbook.result.buy.stream().limit(20).map(e -> e.Quantity).reduce(0.0, Double::sum);
 					Double quantitySellOrders = orderbook.result.sell.stream().limit(20).map(e -> e.Quantity).reduce(0.0, Double::sum);
-					if((quantityBuyOrders/2) > quantitySellOrders) {
+					if((quantityBuyOrders/Global.ORDER_BOOK_LOGIC_MULTIPLE) > quantitySellOrders) {
 						System.out.println("<LogicOrderBook> -- Eligible Coin: "+result.MarketName);
 						eligibleCoins.add(client.getMarketSummary(result.MarketName));
 					}

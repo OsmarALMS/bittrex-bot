@@ -56,6 +56,8 @@ public class LogicLocalHistoryV3 {
 		System.out.println("<LogicLocalHistory> -- Saving data / Checking date: "+dateFindString);
 		
 		MarketSummary[] saveSummaries = client.getMarketSummaries();
+		MarketTicker[] tikers = client.getMarketTicker();
+		
 		Arrays.asList(saveSummaries).stream()
 			.filter(result -> result.getVolume() != null && !result.getVolume().equals(""))
 			.filter(result -> result.getVolume() >= Global.MINIMUN_BASE_VOLUME_TO_BUY)
@@ -63,25 +65,28 @@ public class LogicLocalHistoryV3 {
 			.filter(result -> testCoins != null ? result.getSymbol().equals("testCoins") : true)
 			.forEach(result -> {
 			
-			MarketTicker ticker = client.getMarketTicker(result.getSymbol());	
-				
-			//Saves the current value of all currencies
-			LocalHistory localHistorySave = new LocalHistory(result.getSymbol(), ticker.getAskRate());
-			localHistoryRepository.save(localHistorySave);
-			
-			if(eligibleCoins.size() < quantityOfCoins) {
-				//Check if the local base already has enough data for the parameterized time
-				LocalHistory localHistory = localHistoryRepository.findByDate(result.getSymbol(), dateFindString);
-				if(localHistory != null){
-					//Check percent
-					Double percentValue = (ticker.getAskRate() * 100) / localHistory.getLastValue();
-					if(percentValue >= 100+Global.LOCAL_HISTORY_LOGIC_PERCENTUAL){
-						System.out.println("<LogicLocalHistory> -- Currency "+result.getSymbol()+" grew "+(percentValue-100)+"%");
-						eligibleCoins.add(client.getMarketSummary(result.getSymbol()));
+			Arrays.asList(tikers).stream()
+				.filter(t -> t.getSymbol().equals(result.getSymbol()))
+				.forEach(t -> {
+					
+					//Saves the current value of all currencies
+					LocalHistory localHistorySave = new LocalHistory(result.getSymbol(), t.getAskRate());
+					localHistoryRepository.save(localHistorySave);
+					
+					if(eligibleCoins.size() < quantityOfCoins) {
+						//Check if the local base already has enough data for the parameterized time
+						LocalHistory localHistory = localHistoryRepository.findByDate(result.getSymbol(), dateFindString);
+						if(localHistory != null){
+							//Check percent
+							Double percentValue = (t.getAskRate() * 100) / localHistory.getLastValue();
+							if(percentValue >= 100+Global.LOCAL_HISTORY_LOGIC_PERCENTUAL){
+								System.out.println("<LogicLocalHistory> -- Currency "+result.getSymbol()+" grew "+(percentValue-100)+"%");
+								eligibleCoins.add(client.getMarketSummary(result.getSymbol()));
+							}
+						}
 					}
-				}
-			}
-			
+					
+				});
 		});
 		return eligibleCoins;
 	}

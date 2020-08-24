@@ -1,7 +1,9 @@
 package br.com.bittrexbot.rest.model.v3;
 
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+@JsonInclude(JsonInclude.Include.NON_NULL) 
 public class Order {
 
 	public Order(String marketSymbol, Direction direction, Type type, Double quantity, TimeInForce timeInForce) {

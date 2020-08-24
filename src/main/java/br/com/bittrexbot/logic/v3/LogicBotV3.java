@@ -46,6 +46,8 @@ public class LogicBotV3 {
 	@Scheduled(cron="*/60 * * * * *")
 	public void doTheLogic(){
 		
+//		client.balances();
+		
 		if(CLEAN_DATABASE) cleanDataBase();
 		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyy HH:mm:ss");
